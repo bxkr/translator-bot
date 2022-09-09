@@ -9,3 +9,5 @@ class UserStates(StatesGroup):
 
 
 TOKEN = os.getenv('translator-token')
+REDIS_HOST = os.getenv('redis-host')
+REDIS_PASSWORD = os.getenv('redis-password')
