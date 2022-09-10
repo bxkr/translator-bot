@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+import requests
+from flask import Flask, render_template, request
 
 app = Flask(__name__, template_folder='webapp')
 
@@ -6,6 +7,15 @@ app = Flask(__name__, template_folder='webapp')
 @app.get('/')
 def root():
     return render_template('index.html')
+
+
+@app.get('/returnResult')
+def result():
+    args = request.args['query']
+    word = request.args['word']
+    base_url = f'https://api.telegram.org/bot5709327658:AAHiO3kEZorMxAXKOe5qEJOtajO0CATYo4Y' \
+               f'/answerWebAppQuery?web_app_query_id={args}&result={{"word": "{word}"}}'
+    requests.get(base_url)
 
 
 @app.get('/<path:path>')

@@ -71,7 +71,7 @@
     window.Telegram.WebApp.MainButton.isActive = false;
     window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
     window.Telegram.WebApp.MainButton.onClick(() => {
-        window.Telegram.WebApp.sendData(field.value);
+        fetch(`https://translator-bot-front.herokuapp.com/returnResult?query=${window.Telegram.WebApp.initDataUnsafe.query_id}&word=${field.value}`)
     });
 
 

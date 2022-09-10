@@ -1,8 +1,7 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 main_menu_keyboard = ReplyKeyboardMarkup(keyboard=[
     [
-        KeyboardButton(text='Существующие переводы', web_app=WebAppInfo(url=
-                                                                        'https://translator-bot-front.herokuapp.com/'))
+        KeyboardButton(text='Существующие переводы')
     ]
 ])
