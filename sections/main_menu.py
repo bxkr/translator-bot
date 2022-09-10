@@ -2,10 +2,10 @@ import json
 
 from aiogram import Router, types, F
 import aiohttp
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, InlineQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
-from shared import UserStates, main_menu_keyboard, SERVER_SECURE, SERVER_BASEURL, plural, translations_genitive, \
-    WEBAPP_BASEURL
+from shared import UserStates, main_menu_keyboard, SERVER_SECURE, SERVER_BASEURL, plural, translations, \
+    WEBAPP_BASEURL, PluralCases
 
 main_menu_router = Router()
 
@@ -14,8 +14,9 @@ def webapp_keyboard(available: list[str]) -> InlineKeyboardMarkup:
     json_format = json.dumps(available).replace('"', '%22')
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text=f'🔤 Выбрать из {len(available)} {plural(len(available), translations_genitive)}',
-                                 web_app=WebAppInfo(url=f'{WEBAPP_BASEURL}?available={json_format}'))
+            InlineKeyboardButton(
+                text=f'🔤 Выбрать из {len(available)} {plural(len(available), translations, PluralCases.GENITIVE)}',
+                web_app=WebAppInfo(url=f'{WEBAPP_BASEURL}?available={json_format}'))
         ],
         [
             InlineKeyboardButton(text=f'🔄 Обновить', callback_data='update-translations')
@@ -26,9 +27,11 @@ def webapp_keyboard(available: list[str]) -> InlineKeyboardMarkup:
 async def answer_webapp(message: types.Message):
     async with aiohttp.ClientSession().get(f'{SERVER_BASEURL}get_list?{SERVER_SECURE}') as request:
         available = [str(i[1]).capitalize() for i in (await request.json())]
-        await message.edit_text(f'На данный момент существует {len(available)} переводов. Вы можете выбрать и '
-                                f'посмотреть один из них с помощью кнопки внизу. Чтобы обновить список, нажмите '
-                                f'"Обновить".', reply_markup=webapp_keyboard(available))
+        await message.edit_text(
+            f'На данный момент существует {len(available)} {plural(len(available), translations, PluralCases.GENITIVE)}.'
+            f' Вы можете выбрать и '
+            f'посмотреть один из них с помощью кнопки внизу. Чтобы обновить список, нажмите '
+            f'"Обновить".', reply_markup=webapp_keyboard(available))
 
 
 @main_menu_router.message(UserStates.main_menu, F.web_app_data)
@@ -53,7 +56,8 @@ async def update_translations(callback_query: types.CallbackQuery):
 async def inline_result(message: types.Message):
     async with aiohttp.ClientSession().get(f'{SERVER_BASEURL}get_list?{SERVER_SECURE}') as request:
         for record in await request.json():
-            if (record[1] == message.text) or (record[1] == message.text.lower()) or (record[1] == message.text.capitalize()):
+            if (record[1] == message.text) or (record[1] == message.text.lower()) or (
+                    record[1] == message.text.capitalize()):
                 await message.answer(f'Перевод {message.text} - {record[2]}')
                 return
         await message.answer('Мы пока не перевели это слово :(')
