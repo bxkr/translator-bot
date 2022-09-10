@@ -1,17 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
     <title>WebApp</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <p>text</p>
-    <script>
-        const mainButton = window.Telegram.WebApp.MainButton
-        mainButton.show()
-        mainButton.enable()
-        mainButton.text = 'Капец!';
-    </script>
+<div id="app">
+    <label class="mdc-text-field mdc-text-field--outlined">
+  <span class="mdc-notched-outline">
+    <span class="mdc-notched-outline__leading"></span>
+    <span class="mdc-notched-outline__notch">
+      <span class="mdc-floating-label" id="my-label-id">Переводы</span>
+    </span>
+    <span class="mdc-notched-outline__trailing"></span>
+  </span>
+        <input type="text" class="mdc-text-field__input mdc-menu-surface--anchor" aria-labelledby="my-label-id">
+
+    </label>
+    <div class="mdc-menu mdc-menu-surface">
+        <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+        </ul>
+    </div>
+
+
+</div>
+<script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+<script>
+    // LOGIC
+
+    const list = ['Hello', 'Bye', 'See', 'You'];
+
+    function capitalize(word) {
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    function createItem(title) {
+        return '' +
+            `<li class="mdc-list-item" role="menuitem" onclick="clickList('${title}')">\n` +
+            '    <span class="mdc-list-item__ripple"></span>\n' +
+            `    <span class="mdc-list-item__text">${title}</span>\n` +
+            '</li>';
+    }
+
+    const field = mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
+    let height = document.querySelector('.mdc-text-field').clientHeight;
+
+    const menu = new mdc.menuSurface.MDCMenuSurface(document.querySelector('.mdc-menu'));
+    document.querySelector('.mdc-text-field__input').addEventListener('keyup', () => {
+        field.value = capitalize(field.value);
+        window.Telegram.WebApp.MainButton.isActive = false;
+        window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
+        menu.setAbsolutePosition(document.querySelector('.mdc-text-field').getBoundingClientRect().left, window.Telegram.WebApp.viewportHeight / 2 + height / 2 + 5);
+        document.querySelector('.mdc-list').innerHTML = '';
+        const filtered = list.filter(string => string.includes(document.querySelector('.mdc-text-field__input').value));
+        filtered.forEach((el) => {
+            document.querySelector('.mdc-list').innerHTML += createItem(el);
+        });
+        if (filtered.length > 0) menu.open();
+        else menu.close();
+    })
+
+    window.Telegram.WebApp.MainButton.text = 'Посмотреть перевод';
+    window.Telegram.WebApp.MainButton.isVisible = true;
+    window.Telegram.WebApp.MainButton.isActive = false;
+    window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
+    window.Telegram.WebApp.MainButton.onClick(() => {
+        window.Telegram.WebApp.sendData(field.value);
+    });
+
+
+    function clickList(title) {
+        window.Telegram.WebApp.MainButton.isActive = true;
+        window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.button_color;
+        field.focus();
+        menu.close();
+        field.value = title;
+    }
+</script>
 </body>
 </html>
+<style>
+    :root {
+        --mdc-theme-primary: var(--tg-theme-link-color);
+        --mdc-theme-surface: var(--tg-theme-bg-color);
+        --mdc-theme-on-surface: var(--tg-theme-text-color);
+    }
+
+    html, body {
+        background-color: var(--tg-theme-bg-color);
+        margin: 0 auto;
+    }
+
+    #app {
+        display: flex;
+        width: 100%;
+        height: var(--tg-viewport-height);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .mdc-text-field {
+        color: var(--tg-theme-hint-color);
+        caret-color: var(--tg-theme-text-color);
+    }
+
+    .mdc-text-field--focused, .mdc-text-field .mdc-text-field__input {
+        caret-color: var(--tg-theme-link-color);
+    }
+
+    .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: var(--tg-theme-link-color) !important;
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+        color: var(--tg-theme-text-color);
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: var(--tg-theme-hint-color);
+    }
+
+    .mdc-text-field--disabled .mdc-text-field__input {
+        color: var(--tg-theme-hint-color);
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading, .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch, .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: var(--tg-theme-hint-color);
+    }
+</style>
