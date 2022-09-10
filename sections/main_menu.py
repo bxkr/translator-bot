@@ -2,7 +2,7 @@ import json
 
 from aiogram import Router, types, F
 import aiohttp
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, InlineQuery
 
 from shared import UserStates, main_menu_keyboard, SERVER_SECURE, SERVER_BASEURL, plural, translations_genitive, \
     WEBAPP_BASEURL
@@ -47,6 +47,16 @@ async def update_translations(callback_query: types.CallbackQuery):
     await callback_query.message.edit_text('Обновляю данные...')
     await answer_webapp(callback_query.message)
     await callback_query.answer('Обновлено!')
+
+
+@main_menu_router.message(UserStates.main_menu)
+async def inline_result(message: types.Message):
+    async with aiohttp.ClientSession().get(f'{SERVER_BASEURL}get_list?{SERVER_SECURE}') as request:
+        for record in await request.json():
+            if (record[1] == message.text) or (record[1] == message.text.lower()) or (record[1] == message.text.capitalize()):
+                await message.answer(f'Перевод {message.text} - {record[2]}')
+                return
+        await message.answer('Мы пока не перевели это слово :(')
 
 
 @main_menu_router.message(UserStates.main_menu)
