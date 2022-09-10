@@ -3,6 +3,8 @@ import json
 import requests
 from flask import Flask, render_template, request
 
+from shared import TOKEN
+
 app = Flask(__name__, template_folder='webapp')
 
 
@@ -23,7 +25,7 @@ def result():
             'message_text': word
         }
     }
-    base_url = f'https://api.telegram.org/bot5709327658:AAHiO3kEZorMxAXKOe5qEJOtajO0CATYo4Y' \
+    base_url = f'https://api.telegram.org/bot{TOKEN}' \
                f'/answerWebAppQuery?web_app_query_id={args}&result={json.dumps(res)}'
     req = requests.get(base_url)
     print(req.json())
