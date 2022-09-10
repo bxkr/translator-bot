@@ -28,8 +28,8 @@ async def answer_webapp(message: types.Message):
     async with aiohttp.ClientSession().get(f'{SERVER_BASEURL}get_list?{SERVER_SECURE}') as request:
         available = [str(i[1]).capitalize() for i in (await request.json())]
         await message.edit_text(
-            f'На данный момент существует {len(available)} {plural(len(available), translations, PluralCases.GENITIVE)}.'
-            f' Вы можете выбрать и '
+            f'На данный момент существует {len(available)} '
+            f'{plural(len(available), translations, PluralCases.NOMINATIVE)}. Вы можете выбрать и '
             f'посмотреть один из них с помощью кнопки внизу. Чтобы обновить список, нажмите '
             f'"Обновить".', reply_markup=webapp_keyboard(available))
 
