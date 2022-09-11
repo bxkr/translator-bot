@@ -5,7 +5,7 @@ import aiohttp
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 from shared import UserStates, main_menu_keyboard, SERVER_SECURE, SERVER_BASEURL, plural, translations, \
-    WEBAPP_BASEURL, PluralCases
+    WEBAPP_BASEURL, PluralCases, WEBAPP_CALLBACK
 
 main_menu_router = Router()
 
@@ -16,7 +16,7 @@ def webapp_keyboard(available: list[str]) -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 text=f'🔤 Выбрать из {len(available)} {plural(len(available), translations, PluralCases.GENITIVE)}',
-                web_app=WebAppInfo(url=f'{WEBAPP_BASEURL}?available={json_format}'))
+                web_app=WebAppInfo(url=f'{WEBAPP_BASEURL}?available={json_format}&callback_url={WEBAPP_CALLBACK}'))
         ],
         [
             InlineKeyboardButton(text=f'🔄 Обновить', callback_data='update-translations')

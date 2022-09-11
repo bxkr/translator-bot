@@ -9,6 +9,7 @@ REDIS_PASSWORD = os.getenv('redis-password')
 SERVER_BASEURL = os.getenv('server-baseurl')
 SERVER_SECURE = os.getenv('server-secure')
 WEBAPP_BASEURL = os.getenv('webapp-baseurl')
+WEBAPP_CALLBACK = os.getenv('webapp-callback')
 
 
 class PluralCases(Enum):

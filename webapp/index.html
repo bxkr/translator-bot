@@ -2,42 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
     <title>WebApp</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-<div id="app">
-    <label class="mdc-text-field mdc-text-field--outlined">
-  <span class="mdc-notched-outline">
-    <span class="mdc-notched-outline__leading"></span>
-    <span class="mdc-notched-outline__notch">
-      <span class="mdc-floating-label" id="my-label-id">Переводы</span>
-    </span>
-    <span class="mdc-notched-outline__trailing"></span>
-  </span>
-        <input type="text" class="mdc-text-field__input mdc-menu-surface--anchor" aria-labelledby="my-label-id">
+    <div id="app">
 
-    </label>
-    <div class="mdc-menu mdc-menu-surface">
-        <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-        </ul>
+        <!-- Text field -->
+
+        <label class="mdc-text-field mdc-text-field--outlined">
+            <span class="mdc-notched-outline">
+                <span class="mdc-notched-outline__leading"></span>
+                <span class="mdc-notched-outline__notch">
+                    <span class="mdc-floating-label" id="my-label-id">Переводы</span>
+                </span>
+                <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <input aria-labelledby="my-label-id" class="mdc-text-field__input mdc-menu-surface--anchor" type="text">
+        </label>
+
+        <!-- Dropdown menu -->
+
+        <div class="mdc-menu mdc-menu-surface">
+            <ul aria-hidden="true" aria-orientation="vertical" class="mdc-list" role="menu" tabindex="-1"></ul>
+        </div>
+
     </div>
-
-
-</div>
 <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
 <script>
-    // LOGIC
+    // Read received query params and define necessary variables
 
-    let params = new URLSearchParams(document.location.search);
-    const list = JSON.parse(params.get('available'));
+    const params = new URLSearchParams(document.location.search);
+    const availableTranslations = JSON.parse(params.get('available'));
+    const callbackUrl = params.get('callback_url')
+
+    // Render MD components and define them as variables
+
+    const field = mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
+    const fieldElement = document.querySelector('.mdc-text-field');
+    const fieldHeight = fieldElement.clientHeight;
+    const fieldInput = document.querySelector('.mdc-text-field__input');
+
+    const menu = new mdc.menuSurface.MDCMenuSurface(document.querySelector('.mdc-menu'));
+    const menuList = document.querySelector('.mdc-list');
+
+    // Telegram Init
+
+    window.Telegram.WebApp.MainButton.text = 'Посмотреть перевод';
+    window.Telegram.WebApp.MainButton.isVisible = true;
+    window.Telegram.WebApp.MainButton.isActive = false;
+    window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
+    window.Telegram.WebApp.MainButton.onClick(() => {
+        // With current repo's implementation it will be the same domain, but it can be customized
+        fetch(`${callbackUrl}?query=${window.Telegram.WebApp.initDataUnsafe.query_id}&word=${field.value}`)
+    });
+
+    // Add listeners to the text field
+
+    fieldInput.addEventListener('keydown', () => {
+        field.value = capitalize(field.value);
+
+        window.Telegram.WebApp.MainButton.isActive = false;
+        window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
+    });
+
+    fieldInput.addEventListener('keyup', () => {
+        menu.setAbsolutePosition(
+            fieldElement.getBoundingClientRect().left,
+            window.Telegram.WebApp.viewportHeight / 2 + fieldHeight / 2 + 5
+        );
+        menuList.innerHTML = String();
+
+        const filteredTranslations = availableTranslations.filter(string => string.includes(field.value));
+        filteredTranslations.forEach((el) => {
+            menuList.innerHTML += createItem(el);
+        });
+
+        if (filteredTranslations.length > 0) {
+            menu.open();
+        } else {
+            menu.close();
+        }
+    });
+
+    // Utilities
 
     function capitalize(word) {
-      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+        return word[0].toUpperCase() + word.slice(1).toLowerCase();
     }
 
     function createItem(title) {
@@ -47,33 +102,6 @@
             `    <span class="mdc-list-item__text">${title}</span>\n` +
             '</li>';
     }
-
-    const field = mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
-    let height = document.querySelector('.mdc-text-field').clientHeight;
-
-    const menu = new mdc.menuSurface.MDCMenuSurface(document.querySelector('.mdc-menu'));
-    document.querySelector('.mdc-text-field__input').addEventListener('keyup', () => {
-        field.value = capitalize(field.value);
-        window.Telegram.WebApp.MainButton.isActive = false;
-        window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
-        menu.setAbsolutePosition(document.querySelector('.mdc-text-field').getBoundingClientRect().left, window.Telegram.WebApp.viewportHeight / 2 + height / 2 + 5);
-        document.querySelector('.mdc-list').innerHTML = '';
-        const filtered = list.filter(string => string.includes(document.querySelector('.mdc-text-field__input').value));
-        filtered.forEach((el) => {
-            document.querySelector('.mdc-list').innerHTML += createItem(el);
-        });
-        if (filtered.length > 0) menu.open();
-        else menu.close();
-    })
-
-    window.Telegram.WebApp.MainButton.text = 'Посмотреть перевод';
-    window.Telegram.WebApp.MainButton.isVisible = true;
-    window.Telegram.WebApp.MainButton.isActive = false;
-    window.Telegram.WebApp.MainButton.color = window.Telegram.WebApp.themeParams.hint_color;
-    window.Telegram.WebApp.MainButton.onClick(() => {
-        fetch(`https://translator-bot-front.herokuapp.com/returnResult?query=${window.Telegram.WebApp.initDataUnsafe.query_id}&word=${field.value}`)
-    });
-
 
     function clickList(title) {
         window.Telegram.WebApp.MainButton.isActive = true;
